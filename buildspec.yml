@@ -1,0 +1,30 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region us-west-2)
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...          
+      - docker build -t demo-codepipeline-ecr:latest .
+      - docker tag demo-codepipeline-ecr:latest 628443245197.dkr.ecr.us-west-2.amazonaws.com/demo-codepipeline-ecr:latest      
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push 628443245197.dkr.ecr.us-west-2.amazonaws.com/demo-codepipeline-ecr:latest
+      - mkdir appfiles
+      - cd appfiles
+      - cp ../appspec.yml .
+      - cp ../scripts/kill_container.sh .
+      - cp ../scripts/start_container.sh .
+artifacts:
+  files:
+    - appfiles/kill_container.sh
+    - appfiles/appspec.yml
+    - appfiles/start_container.sh
+  discard-paths: yes
+    
